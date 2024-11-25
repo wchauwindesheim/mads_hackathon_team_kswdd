@@ -4,10 +4,10 @@ SCRIPT1 := run_model1.py
 SCRIPT2 := run_transformer_kj_3.py
 SCRIPT3 := run_model3.py
 SCRIPT4 := averages_csv.py
-VALID_DATA := /home/william/hackathon-data/heart_big_valid.parq
+VALID_DATA := /home/william/hackathon-data/heart_big_test.parq
 
 # Default target: run all three scripts in sequence
-run: run1 run2 run3 average
+run: run1 run2 average
 
 # Target to run 1.py - Stephan
 run1:
@@ -15,7 +15,7 @@ run1:
 
 # Target to run 2.py
 run2:
-	$(PYTHON) $(SCRIPT2)
+	cd src_validate; .venv/bin/python3 validate.py --valid_path $(VALID_DATA)
 
 # Target to run 3.py
 run3:
@@ -23,11 +23,7 @@ run3:
 
 # Target to run average_csv.py (averages the columns of the 3 CSVs)
 average:
-	$(PYTHON) $(SCRIPT4) ../models/ecg-transformer/validation_results_782789fed8a64e4e93d63e90900d09f6.csv
-
-# Clean up generated files (optional)
-clean:
-	rm -f *.log *.json *.txt
+	$(PYTHON) $(SCRIPT4) ../models/ecg-transformer/validation_results_782789fed8a64e4e93d63e90900d09f6.csv src_validate/predictions_with_probabilities_gru_model.csv
 
 # Help target
 help:

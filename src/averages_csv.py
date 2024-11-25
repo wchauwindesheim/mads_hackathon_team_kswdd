@@ -1,13 +1,17 @@
+import numpy as np
+import sys
 import pandas as pd
-from sklearn.metrics import f1_score
+import os
+from sklearn.metrics import *
+from pprint import pformat
 
 def main():
     # Fixed input file names
-    input_files = ["predictions1.csv", "predictions2.csv", "predictions3.csv"]
+    input_files = sys.argv[1:]
     output_file = "../results/output.csv"
 
     # Initialize a DataFrame to store averages
-    averages_list = []
+    results_list = []
 
     for file in input_files:
         # Read the CSV file
@@ -15,9 +19,6 @@ def main():
 
         # Drop the 'target' column before averaging
         df_without_target = df.drop(columns=["target"])
-
-        # Calculate the mean for each column
-        averages = df_without_target.mean()
 
         # Add the filename (without .csv) as the 'modeltag' column
         modeltag = file.replace(".csv", "")
@@ -30,23 +31,26 @@ def main():
         f1_micro = f1_score(true_labels, predictions, average="micro")
         f1_macro = f1_score(true_labels, predictions, average="macro")
 
-        # Add F1 scores and modeltag
-        averages = pd.concat(
-            [pd.Series({"modeltag": modeltag, "F1scoremicro": f1_micro, "F1scoremacro": f1_macro}), averages]
-        )
+        # True positives
+        cm = confusion_matrix(true_labels, predictions)
 
-        # Append to the list
-        averages_list.append(averages)
+        with open(f"../results/" + os.path.basename(modeltag) + "_cm.txt", "w") as f:
+            f.write(
+                pformat(cm)
+            )
+
+        results_list.append(
+            {"modeltag": modeltag, "F1scoremicro": f1_micro, "F1scoremacro": f1_macro}
+        )
+        for i in range(5):
+            results_list[-1][f"TP_{i}"] = cm[i, i] / np.sum(cm, axis=1, keepdims=True)[i]
+
 
     # Combine the averages into a single DataFrame
-    averages_df = pd.DataFrame(averages_list)
-
-    # Rename prediction columns to include 'TP_' prefix
-    column_names = ["modeltag", "F1scoremicro", "F1scoremacro"] + [f"TP_{i}" for i in range(averages_df.shape[1] - 3)]
-    averages_df.columns = column_names
+    results_df = pd.DataFrame.from_dict(results_list)
 
     # Write the output to a new CSV file
-    averages_df.to_csv(output_file, index=False)
+    results_df.to_csv(output_file, index=False)
     print(f"Averaged CSV saved to {output_file}, with F1 scores included.")
 
 if __name__ == "__main__":
