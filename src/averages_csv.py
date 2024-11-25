@@ -4,7 +4,7 @@ from sklearn.metrics import f1_score
 def main():
     # Fixed input file names
     input_files = ["predictions1.csv", "predictions2.csv", "predictions3.csv"]
-    output_file = "output.csv"
+    output_file = "../results/output.csv"
 
     # Initialize a DataFrame to store averages
     averages_list = []
